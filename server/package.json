@@ -24,7 +24,8 @@
     "openai": "^4.28.4",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@nestjs/testing": "^10.3.3",
@@ -32,6 +33,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@types/supertest": "^6.0.2",
+    "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
