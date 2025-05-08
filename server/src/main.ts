@@ -27,15 +27,10 @@ async function bootstrap() {
   logger.log('Initializing services...');
   const telegramService = app.get(TelegramService);
 
-  // Start the services with timeout
+  // Start the services
   logger.log('Starting Telegram service...');
   try {
-    const telegramStartPromise = telegramService.start();
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Telegram service startup timeout')), 5000),
-    );
-
-    await Promise.race([telegramStartPromise, timeoutPromise]);
+    await telegramService.start();
     logger.log('Telegram service started');
   } catch (error) {
     logger.error('Failed to start Telegram service:', error);

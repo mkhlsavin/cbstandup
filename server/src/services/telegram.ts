@@ -234,74 +234,34 @@ export class TelegramService {
     }
 
     this.isStarting = true;
-    let retryCount = 0;
-    const maxRetries = 3;
-    const retryDelay = 5000; // 5 seconds
 
-    while (retryCount < maxRetries) {
-      try {
-        this.logger.log(`Attempt ${retryCount + 1} to start Telegram bot...`);
+    try {
+      this.logger.log('Starting Telegram bot...');
 
-        // Check network connectivity first
-        try {
-          await this.bot.api.getMe();
-          this.logger.log('Successfully connected to Telegram API');
-        } catch (error: any) {
-          if (error.message?.includes('ENOTFOUND')) {
-            this.logger.error(
-              'Network error: Cannot connect to Telegram API. Please check your internet connection.',
-            );
-            throw new Error('Network connectivity issue');
-          }
-          throw error;
-        }
+      // Check network connectivity first
+      await this.bot.api.getMe();
+      this.logger.log('Successfully connected to Telegram API');
 
-        this.logger.log('Checking webhook status...');
-        const webhookInfo = await this.bot.api.getWebhookInfo();
+      // Clear any existing webhook and updates
+      this.logger.log('Clearing webhook and updates...');
+      await this.bot.api.deleteWebhook({ drop_pending_updates: true });
+      this.logger.log('Webhook and updates cleared');
 
-        if (webhookInfo.url) {
-          this.logger.log(`Removing existing webhook at ${webhookInfo.url}...`);
-          await this.bot.api.deleteWebhook({ drop_pending_updates: true });
-          this.logger.log('Webhook removed successfully');
-        }
+      // Start the bot
+      this.logger.log('Starting bot...');
+      await this.bot.start();
+      this.logger.log('Bot started successfully');
 
-        // Очищаем все обновления перед запуском
-        this.logger.log('Clearing pending updates...');
-        await this.bot.api.deleteWebhook({ drop_pending_updates: true });
-        await this.bot.api.getUpdates({ offset: -1, limit: 1 });
-        this.logger.log('Pending updates cleared');
+      // Verify bot is running
+      const botInfo = await this.bot.api.getMe();
+      this.logger.log(`Bot @${botInfo.username} is now running`);
 
-        this.logger.log('Starting bot...');
-        await this.bot.start();
-        this.logger.log('Bot started successfully');
-
-        // Verify bot is running
-        const botInfo = await this.bot.api.getMe();
-        this.logger.log(`Bot @${botInfo.username} is now running`);
-
-        return;
-      } catch (error: any) {
-        retryCount++;
-
-        if (error.message === 'Network connectivity issue') {
-          if (retryCount < maxRetries) {
-            this.logger.warn(
-              `Network error. Retrying in ${
-                retryDelay / 1000
-              } seconds... (Attempt ${retryCount}/${maxRetries})`,
-            );
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-            continue;
-          }
-        }
-
-        this.logger.error('Error starting Telegram bot:', error);
-        if (retryCount === maxRetries) {
-          throw new Error(
-            `Failed to start Telegram bot after ${maxRetries} attempts: ${error.message}`,
-          );
-        }
-      }
+      return;
+    } catch (error) {
+      this.logger.error('Error starting Telegram bot:', error);
+      throw error;
+    } finally {
+      this.isStarting = false;
     }
   }
 
