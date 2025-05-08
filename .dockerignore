@@ -12,4 +12,5 @@ coverage
 test
 __tests__
 *.test.ts
-*.spec.ts 
+*.spec.ts
+!package-lock.json 
