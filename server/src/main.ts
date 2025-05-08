@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-// import { TelegramService } from './services/telegram';
+import { TelegramService } from './services/telegram';
 
 async function bootstrap() {
   const logger = new Logger('Main');
@@ -31,21 +31,15 @@ async function bootstrap() {
   logger.log(`Starting HTTP server on port ${port}...`);
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Health check available at: http://localhost:${port}/api/health`);
-
-  // Wait a bit to ensure health check is available
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  logger.log(`Health check available at: http://localhost:${port}/health`);
 
   // Initialize services after HTTP server is running
   logger.log('Initializing services...');
-  // const telegramService = app.get(TelegramService);
+  const telegramService = app.get(TelegramService);
 
   // Start Telegram bot in the background
-  // logger.log('Starting Telegram service...');
-  // telegramService.start().catch(error => {
-  //   logger.error('Failed to start Telegram service:', error);
-  //   logger.warn('Continuing without Telegram service...');
-  // });
+  logger.log('Starting Telegram service...');
+  telegramService.start();
 }
 
 bootstrap().catch(error => {

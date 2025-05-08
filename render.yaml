@@ -3,7 +3,7 @@ services:
     name: cbstandup
     env: docker
     plan: free
-    healthCheckPath: /api/health
+    healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
