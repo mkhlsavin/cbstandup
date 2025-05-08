@@ -11,7 +11,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  const port = process.env.PORT || 10000;
+  const port = process.env.PORT || '10000';
   logger.log(`Configuring application on port ${port}...`);
 
   // Add global prefix for API routes first
