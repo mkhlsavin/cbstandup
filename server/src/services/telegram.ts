@@ -265,6 +265,12 @@ export class TelegramService {
           this.logger.log('Webhook removed successfully');
         }
 
+        // Очищаем все обновления перед запуском
+        this.logger.log('Clearing pending updates...');
+        await this.bot.api.deleteWebhook({ drop_pending_updates: true });
+        await this.bot.api.getUpdates({ offset: -1, limit: 1 });
+        this.logger.log('Pending updates cleared');
+
         this.logger.log('Starting bot...');
         await this.bot.start();
         this.logger.log('Bot started successfully');
