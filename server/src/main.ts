@@ -33,6 +33,9 @@ async function bootstrap() {
   logger.log(`Application is running on: http://localhost:${port}`);
   logger.log(`Health check available at: http://localhost:${port}/api/health`);
 
+  // Wait a bit to ensure health check is available
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   // Initialize services after HTTP server is running
   logger.log('Initializing services...');
   const telegramService = app.get(TelegramService);

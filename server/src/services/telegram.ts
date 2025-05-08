@@ -20,22 +20,7 @@ export class TelegramService {
   constructor(
     private readonly videoService: VideoService,
     private readonly openaiService: OpenAIService,
-  ) {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (!token) {
-      this.logger.warn('TELEGRAM_BOT_TOKEN is not set. Telegram bot will be disabled.');
-      return;
-    }
-
-    try {
-      this.bot = new Bot<BotContext>(token);
-      this.bot.use(session({ initial: () => ({}) }));
-      this.setupCommands();
-      this.logger.log('Telegram bot instance created successfully');
-    } catch (error) {
-      this.logger.error('Failed to create Telegram bot instance:', error);
-    }
-  }
+  ) {}
 
   private setupCommands() {
     if (!this.bot) return;
@@ -223,11 +208,6 @@ export class TelegramService {
   }
 
   async start() {
-    if (!this.bot) {
-      this.logger.warn('Telegram bot is disabled due to missing token');
-      return;
-    }
-
     if (this.isStarting) {
       this.logger.warn('Telegram bot is already starting');
       return;
@@ -236,9 +216,21 @@ export class TelegramService {
     this.isStarting = true;
 
     try {
+      const token = process.env.TELEGRAM_BOT_TOKEN;
+      if (!token) {
+        this.logger.warn('TELEGRAM_BOT_TOKEN is not set. Telegram bot will be disabled.');
+        return;
+      }
+
       this.logger.log('Starting Telegram bot...');
 
-      // Check network connectivity first
+      // Create bot instance
+      this.bot = new Bot<BotContext>(token);
+      this.bot.use(session({ initial: () => ({}) }));
+      this.setupCommands();
+      this.logger.log('Telegram bot instance created successfully');
+
+      // Check network connectivity
       await this.bot.api.getMe();
       this.logger.log('Successfully connected to Telegram API');
 
