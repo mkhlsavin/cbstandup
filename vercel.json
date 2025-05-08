@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server/src/main.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["server/src/**/*"],
+        "buildCommand": "cd server && npm install && npm run build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "server/src/main.ts"
+    },
+    {
+      "src": "/health",
+      "dest": "server/src/main.ts"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_KEY": "@supabase_key",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "OPENAI_ASSISTANT_ID": "@openai_assistant_id",
+    "TELEGRAM_BOT_TOKEN": "@telegram_bot_token",
+    "PORT": "3000"
+  }
+} 
