@@ -2,12 +2,14 @@
 FROM node:18-alpine as client-builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Устанавливаем зависимости с подробным логированием
+RUN npm install --verbose
 COPY . ./
 # Устанавливаем переменные окружения для сборки
 ENV NODE_ENV=production
 ENV REACT_APP_API_URL=https://cbstandup.ru/api
-RUN npm run build
+# Добавляем подробное логирование при сборке
+RUN npm run build --verbose
 
 # Build stage for the server
 FROM node:18-alpine as server-builder
