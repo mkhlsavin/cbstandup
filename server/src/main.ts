@@ -11,7 +11,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  const port = process.env.PORT || '10000';
+  const port = process.env.PORT || '3000';
   logger.log(`Configuring application on port ${port}...`);
 
   // Настройка CORS
@@ -22,9 +22,6 @@ async function bootstrap() {
     credentials: true,
   });
   logger.log('CORS enabled');
-
-  // Add a small delay to ensure the application is ready
-  await new Promise(resolve => setTimeout(resolve, 1000));
 
   // Start HTTP server immediately
   logger.log(`Starting HTTP server on port ${port}...`);
@@ -44,7 +41,13 @@ async function bootstrap() {
   //});
 }
 
-bootstrap().catch(error => {
-  console.error('Failed to start application:', error);
-  process.exit(1);
-});
+// Handle Vercel serverless functions
+if (process.env.NODE_ENV === 'production') {
+  bootstrap().catch(error => {
+    console.error('Failed to start application:', error);
+    process.exit(1);
+  });
+}
+
+// Export for Vercel
+export default bootstrap;
