@@ -14,10 +14,6 @@ async function bootstrap() {
   const port = process.env.PORT || '10000';
   logger.log(`Configuring application on port ${port}...`);
 
-  // Add global prefix for API routes first
-  app.setGlobalPrefix('api');
-  logger.log('API routes configured with /api prefix');
-
   // Настройка CORS
   app.enableCors({
     origin: true, // Allow all origins in production
@@ -31,7 +27,7 @@ async function bootstrap() {
   logger.log(`Starting HTTP server on port ${port}...`);
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Health check available at: http://localhost:${port}/api/health`);
+  logger.log(`Health check available at: http://localhost:${port}/health`);
 
   // Initialize services after HTTP server is running
   logger.log('Initializing services...');

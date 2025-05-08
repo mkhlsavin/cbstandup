@@ -12,7 +12,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get(['health', 'api/health'])
+  @Get('health')
   getHealth(): { status: string } {
     this.logger.log('Health check endpoint called');
     return { status: 'ok' };
