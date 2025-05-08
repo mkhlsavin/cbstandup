@@ -1,43 +1,39 @@
-# Build stage for the client
-FROM node:18-alpine as client-builder
-WORKDIR /app
-COPY package*.json ./
-# Устанавливаем зависимости с подробным логированием
-RUN npm install --verbose
-COPY . ./
-# Устанавливаем переменные окружения для сборки
-ENV NODE_ENV=production
-ENV REACT_APP_API_URL=https://cbstandup.ru/api
-# Добавляем подробное логирование при сборке и игнорируем ошибки
-RUN npm run build --verbose || (echo "Build failed, but continuing..." && exit 0)
+# Build stage
+FROM node:20-alpine AS builder
 
-# Build stage for the server
-FROM node:18-alpine as server-builder
-WORKDIR /app/server
+WORKDIR /app
+
+# Copy package files
 COPY server/package*.json ./
-RUN npm install
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
 COPY server/ ./
+
+# Build the application
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
+
 WORKDIR /app
 
-# Copy server files
-COPY --from=server-builder /app/server/dist ./server/dist
-COPY --from=server-builder /app/server/package*.json ./server/
-COPY --from=server-builder /app/server/node_modules ./server/node_modules
+# Copy package files
+COPY server/package*.json ./
 
-# Copy client files
-COPY --from=client-builder /app/build ./client/dist
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3001
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3000
 
-# Start the server
-WORKDIR /app/server
-CMD ["node", "dist/main.js"] 
+# Start the application
+CMD ["npm", "run", "start"] 
