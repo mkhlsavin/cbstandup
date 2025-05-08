@@ -4,6 +4,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . ./
+# Устанавливаем переменные окружения для сборки
+ENV NODE_ENV=production
+ENV REACT_APP_API_URL=https://cbstandup.ru/api
 RUN npm run build
 
 # Build stage for the server
@@ -24,7 +27,7 @@ COPY --from=server-builder /app/server/package*.json ./server/
 COPY --from=server-builder /app/server/node_modules ./server/node_modules
 
 # Copy client files
-COPY --from=client-builder /app/dist ./client/dist
+COPY --from=client-builder /app/build ./client/dist
 
 # Set environment variables
 ENV NODE_ENV=production
