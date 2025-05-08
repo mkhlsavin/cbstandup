@@ -42,9 +42,14 @@ async function bootstrap() {
     logger.warn('Continuing without Telegram service...');
   }
 
+  // Add global prefix for API routes
+  app.setGlobalPrefix('api');
+  logger.log('API routes configured with /api prefix');
+
   logger.log(`Starting HTTP server on port ${port}...`);
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Health check available at: http://localhost:${port}/api/health`);
 }
 
 bootstrap().catch(error => {
