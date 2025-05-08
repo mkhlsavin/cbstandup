@@ -11,7 +11,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 10000;
   logger.log(`Configuring application on port ${port}...`);
 
   // Add global prefix for API routes first
@@ -20,7 +20,7 @@ async function bootstrap() {
 
   // Настройка CORS
   app.enableCors({
-    origin: [`http://localhost:${port}`, 'https://web.telegram.org'],
+    origin: true, // Allow all origins in production
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -31,7 +31,7 @@ async function bootstrap() {
   logger.log(`Starting HTTP server on port ${port}...`);
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Health check available at: http://localhost:${port}/health`);
+  logger.log(`Health check available at: http://localhost:${port}/api/health`);
 
   // Initialize services after HTTP server is running
   logger.log('Initializing services...');
@@ -39,7 +39,10 @@ async function bootstrap() {
 
   // Start Telegram bot in the background
   logger.log('Starting Telegram service...');
-  telegramService.start();
+  telegramService.start().catch(error => {
+    logger.error('Failed to start Telegram service:', error);
+    logger.warn('Continuing without Telegram service...');
+  });
 }
 
 bootstrap().catch(error => {

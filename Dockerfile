@@ -31,9 +31,10 @@ COPY --from=builder /app/dist ./dist
 
 # Set environment variables
 ENV NODE_ENV=production
+ENV PORT=10000
 
 # Expose port
-EXPOSE 3000
+EXPOSE 10000
 
 # Start the application
 CMD ["npm", "run", "start"] 
