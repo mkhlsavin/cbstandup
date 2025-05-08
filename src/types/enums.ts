@@ -8,4 +8,4 @@ export enum VideoDifficulty {
   HARD = 'сложно',
   MEDIUM = 'средне',
   EASY = 'легко',
-} 
+}

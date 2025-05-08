@@ -40,7 +40,9 @@ export class VideoService {
   }
 
   async isFavorite(telegramUserId: string, videoId: number): Promise<boolean> {
-    const response = await fetch(`${config.api.baseUrl}/favorites/check/${telegramUserId}/${videoId}`);
+    const response = await fetch(
+      `${config.api.baseUrl}/favorites/check/${telegramUserId}/${videoId}`
+    );
     if (!response.ok) {
       throw new Error('Failed to check favorite status');
     }

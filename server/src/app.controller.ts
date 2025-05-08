@@ -14,4 +14,4 @@ export class AppController {
   getHealth(): { status: string } {
     return { status: 'ok' };
   }
-} 
+}

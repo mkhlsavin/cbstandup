@@ -41,7 +41,7 @@ export class TelegramService {
     if (!this.bot) return;
 
     // Обработка обычных сообщений
-    this.bot.on('message', async (ctx) => {
+    this.bot.on('message', async ctx => {
       // Пропускаем команды
       if (ctx.message.text?.startsWith('/')) return;
 
@@ -53,7 +53,7 @@ export class TelegramService {
       try {
         const response = await this.openaiService.getAssistantResponse(
           ctx.message.text || '',
-          ctx.from.id.toString()
+          ctx.from.id.toString(),
         );
         await ctx.reply(response);
       } catch (error) {
@@ -63,7 +63,7 @@ export class TelegramService {
     });
 
     // Обработка лайков
-    this.bot.on('callback_query', async (ctx) => {
+    this.bot.on('callback_query', async ctx => {
       if (!ctx.callbackQuery.data?.startsWith('like_')) return;
       if (!ctx.from) {
         this.logger.error('User context is missing in callback query');
@@ -75,7 +75,7 @@ export class TelegramService {
         const videoId = parseInt(ctx.callbackQuery.data.replace('like_', ''), 10);
         const telegramUserId = ctx.from.id.toString();
         this.logger.log(`Processing like for video ID: ${videoId} from user ${telegramUserId}`);
-        
+
         if (isNaN(videoId)) {
           this.logger.error(`Invalid video ID: ${ctx.callbackQuery.data}`);
           await ctx.answerCallbackQuery('Неверный ID видео');
@@ -88,7 +88,7 @@ export class TelegramService {
 
         const video = await this.videoService.getVideoById(videoId);
         this.logger.log(`Retrieved video: ${JSON.stringify(video)}`);
-        
+
         if (!video) {
           this.logger.error(`Video not found: ${videoId}`);
           await ctx.answerCallbackQuery('Видео не найдено');
@@ -98,13 +98,10 @@ export class TelegramService {
         // Отправляем сообщение о начале обработки
         await ctx.answerCallbackQuery('Обрабатываю ваш запрос...');
         this.logger.log(`Sending video like request to OpenAI for video ${videoId}`);
-        
+
         // Получаем ответ от ассистента
-        const response = await this.openaiService.handleVideoLike(
-          video,
-          telegramUserId
-        );
-        
+        const response = await this.openaiService.handleVideoLike(video, telegramUserId);
+
         this.logger.log(`Received response from OpenAI for video ${videoId}`);
         // Отправляем ответ пользователю
         await ctx.reply(response);
@@ -115,13 +112,15 @@ export class TelegramService {
       }
     });
 
-    this.bot.command('start', async (ctx) => {
+    this.bot.command('start', async ctx => {
       if (!ctx.from) {
         await ctx.reply('Не удалось определить пользователя');
         return;
       }
 
-      await ctx.reply('Привет! Я ИИ-бот котрорый будет помогать тебе в изучении химии и биологии. Как только ты лайкнешь видео, я пойму что ты хочешь изучить эту тему поглубже и смогу объяснить ее тебе понятным языком и помочь с решением задач. Нажми на кнопку "Видео" или используй /help для списка команд.');
+      await ctx.reply(
+        'Привет! Я ИИ-бот котрорый будет помогать тебе в изучении химии и биологии. Как только ты лайкнешь видео, я пойму что ты хочешь изучить эту тему поглубже и смогу объяснить ее тебе понятным языком и помочь с решением задач. Нажми на кнопку "Видео" или используй /help для списка команд.',
+      );
 
       try {
         // Запускаем беседу с ассистентом
@@ -132,7 +131,7 @@ export class TelegramService {
       }
     });
 
-    this.bot.command('help', async (ctx) => {
+    this.bot.command('help', async ctx => {
       await ctx.reply(
         'Доступные команды:\n' +
           '/list - показать все видео\n' +
@@ -142,7 +141,7 @@ export class TelegramService {
       );
     });
 
-    this.bot.command('list', async (ctx) => {
+    this.bot.command('list', async ctx => {
       try {
         const videos = await this.videoService.getVideos();
         const message = videos.map((v: Video) => `${v.title} - ${v.tag}`).join('\n');
@@ -153,7 +152,7 @@ export class TelegramService {
       }
     });
 
-    this.bot.command('tag', async (ctx) => {
+    this.bot.command('tag', async ctx => {
       if (!ctx.message?.text) {
         await ctx.reply('Пожалуйста, укажите тег. Например: /tag химия');
         return;
@@ -174,7 +173,7 @@ export class TelegramService {
       }
     });
 
-    this.bot.command('favorites', async (ctx) => {
+    this.bot.command('favorites', async ctx => {
       if (!ctx.from) {
         await ctx.reply('Не удалось определить пользователя');
         return;
@@ -190,7 +189,7 @@ export class TelegramService {
       }
     });
 
-    this.bot.command('ask', async (ctx) => {
+    this.bot.command('ask', async ctx => {
       if (!ctx.message?.text) {
         await ctx.reply(
           'Пожалуйста, задайте вопрос. Например: /ask Какие продукты образуются при гидролизе этилацетата в кислой среде?',
@@ -211,7 +210,10 @@ export class TelegramService {
       }
 
       try {
-        const response = await this.openaiService.getAssistantResponse(question, ctx.from.id.toString());
+        const response = await this.openaiService.getAssistantResponse(
+          question,
+          ctx.from.id.toString(),
+        );
         await ctx.reply(response);
       } catch (error) {
         this.logger.error('Error in /ask command:', error);
@@ -239,14 +241,16 @@ export class TelegramService {
     while (retryCount < maxRetries) {
       try {
         this.logger.log(`Attempt ${retryCount + 1} to start Telegram bot...`);
-        
+
         // Check network connectivity first
         try {
           await this.bot.api.getMe();
           this.logger.log('Successfully connected to Telegram API');
         } catch (error: any) {
           if (error.message?.includes('ENOTFOUND')) {
-            this.logger.error('Network error: Cannot connect to Telegram API. Please check your internet connection.');
+            this.logger.error(
+              'Network error: Cannot connect to Telegram API. Please check your internet connection.',
+            );
             throw new Error('Network connectivity issue');
           }
           throw error;
@@ -264,18 +268,22 @@ export class TelegramService {
         this.logger.log('Starting bot...');
         await this.bot.start();
         this.logger.log('Bot started successfully');
-        
+
         // Verify bot is running
         const botInfo = await this.bot.api.getMe();
         this.logger.log(`Bot @${botInfo.username} is now running`);
-        
+
         return;
       } catch (error: any) {
         retryCount++;
-        
+
         if (error.message === 'Network connectivity issue') {
           if (retryCount < maxRetries) {
-            this.logger.warn(`Network error. Retrying in ${retryDelay/1000} seconds... (Attempt ${retryCount}/${maxRetries})`);
+            this.logger.warn(
+              `Network error. Retrying in ${
+                retryDelay / 1000
+              } seconds... (Attempt ${retryCount}/${maxRetries})`,
+            );
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             continue;
           }
@@ -283,7 +291,9 @@ export class TelegramService {
 
         this.logger.error('Error starting Telegram bot:', error);
         if (retryCount === maxRetries) {
-          throw new Error(`Failed to start Telegram bot after ${maxRetries} attempts: ${error.message}`);
+          throw new Error(
+            `Failed to start Telegram bot after ${maxRetries} attempts: ${error.message}`,
+          );
         }
       }
     }
