@@ -23,11 +23,20 @@ async function bootstrap() {
   });
   logger.log('CORS enabled');
 
-  // Get services from the container
+  // Add global prefix for API routes
+  app.setGlobalPrefix('api');
+  logger.log('API routes configured with /api prefix');
+
+  // Start HTTP server first
+  logger.log(`Starting HTTP server on port ${port}...`);
+  await app.listen(port);
+  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Health check available at: http://localhost:${port}/api/health`);
+
+  // Start Telegram bot after HTTP server is running
   logger.log('Initializing services...');
   const telegramService = app.get(TelegramService);
 
-  // Start the services
   logger.log('Starting Telegram service...');
   try {
     await telegramService.start();
@@ -36,15 +45,6 @@ async function bootstrap() {
     logger.error('Failed to start Telegram service:', error);
     logger.warn('Continuing without Telegram service...');
   }
-
-  // Add global prefix for API routes
-  app.setGlobalPrefix('api');
-  logger.log('API routes configured with /api prefix');
-
-  logger.log(`Starting HTTP server on port ${port}...`);
-  await app.listen(port);
-  logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Health check available at: http://localhost:${port}/api/health`);
 }
 
 bootstrap().catch(error => {
