@@ -242,6 +242,24 @@ export class TelegramService {
       await this.bot.api.getMe();
       this.logger.log('Successfully connected to Telegram API');
 
+      // Check if getUpdates is available
+      try {
+        const webhookInfo = await this.bot.api.getWebhookInfo();
+        if (webhookInfo.url) {
+          this.logger.log('Webhook is set, skipping bot start');
+          return;
+        }
+
+        // Try to get updates to check if another instance is running
+        await this.bot.api.getUpdates({ offset: -1, limit: 1 });
+      } catch (error: any) {
+        if (error.message?.includes('409: Conflict')) {
+          this.logger.warn('Another bot instance is running, skipping bot start');
+          return;
+        }
+        throw error;
+      }
+
       // Clear any existing webhook and updates
       this.logger.log('Clearing webhook and updates...');
       await this.bot.api.deleteWebhook({ drop_pending_updates: true });
