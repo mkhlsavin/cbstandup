@@ -21,7 +21,7 @@ export class SupabaseService {
 
   async testConnection() {
     try {
-      const { data, error } = await this.supabase.from('videos').select('count').limit(1);
+      const { error } = await this.supabase.from('videos').select('count').limit(1);
       if (error) throw error;
       this.logger.log('Successfully connected to Supabase');
       return true;

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-//import { TelegramService } from './services/telegram';
+import { TelegramService } from './services/telegram';
 
 async function bootstrap() {
   const logger = new Logger('Main');
@@ -31,14 +31,14 @@ async function bootstrap() {
 
   // Initialize services after HTTP server is running
   logger.log('Initializing services...');
-  //const telegramService = app.get(TelegramService);
+  const telegramService = app.get(TelegramService);
 
   // Start Telegram bot in the background
-  //logger.log('Starting Telegram service...');
-  //telegramService.start().catch(error => {
-  //  logger.error('Failed to start Telegram service:', error);
-  //  logger.warn('Continuing without Telegram service...');
-  //});
+  logger.log('Starting Telegram service...');
+  telegramService.start().catch(error => {
+    logger.error('Failed to start Telegram service:', error);
+    logger.warn('Continuing without Telegram service...');
+  });
 }
 
 // Handle Vercel serverless functions
