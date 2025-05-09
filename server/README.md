@@ -1,79 +1,96 @@
 # Backend Structure
 
-## Директории
-
-### `/src`
-Основной код сервера:
-- `main.ts` - Точка входа приложения
-- `app.module.ts` - Корневой модуль NestJS
-
-### `/src/controllers`
-Контроллеры API:
-- `video.controller.ts` - Управление видео
-- `favorite.controller.ts` - Управление избранным
-
-### `/src/services`
-Сервисы:
-- `telegram.service.ts` - Интеграция с Telegram
-- `openai.service.ts` - Интеграция с OpenAI
-
-### `/src/database`
-Работа с базой данных:
-- `init.sql` - Скрипт инициализации базы данных
-- `migrations/` - Миграции базы данных
-
-### `/src/entities`
-Сущности базы данных:
-- `Video.ts` - Модель видео
-- `UserFavorite.ts` - Модель избранного
-
 ## Основные технологии
 
-- NestJS
-- TypeORM
-- PostgreSQL
-- OpenAI Assistants API
+- NestJS как основной фреймворк
+- TypeORM для работы с базой данных
+- PostgreSQL как основная база данных
+- OpenAI Assistants API для генерации вопросов
 - Grammy для Telegram бота
+- Winston для логирования
+
+## Структура директорий
+
+```
+server/
+├── src/
+│   ├── controllers/     # Контроллеры API
+│   ├── services/        # Бизнес-логика
+│   ├── entities/        # Модели данных
+│   ├── dto/            # Data Transfer Objects
+│   ├── database/       # Миграции и инициализация БД
+│   ├── tests/          # Тесты
+│   └── logger.ts       # Конфигурация логгера
+├── dist/               # Скомпилированные файлы
+└── package.json        # Зависимости и скрипты
+```
 
 ## API Endpoints
 
-### Видео
-- `GET /videos` - Получение списка видео
-- `GET /videos/:id` - Получение видео по ID
-- `GET /videos/tag/:tag` - Получение видео по тегу
+### Health Check
+- `GET /health` - Проверка работоспособности сервера
 
-### Избранное
+### Videos
+- `GET /videos` - Получение списка видео
+- `GET /videos/tag/:tag` - Получение видео по тегу
 - `GET /favorites/:userId` - Получение избранных видео пользователя
-- `POST /favorites/:userId/:videoId` - Добавление видео в избранное
+- `POST /favorites` - Добавление видео в избранное
 - `DELETE /favorites/:userId/:videoId` - Удаление видео из избранного
 
 ## Интеграция с Telegram
 
-- Обработка команд бота
+Бот использует библиотеку Grammy для обработки команд и сообщений. Основные функции:
+- Обработка команд `/start`, `/help`
+- Отправка видео из базы данных
 - Интеграция с OpenAI для генерации вопросов
-- Управление сессиями пользователей
+- Управление избранными видео
 
 ## База данных
 
-### Таблицы
-- `videos` - Хранение информации о видео
-- `user_favorites` - Связь пользователей с избранными видео
+### Инициализация
 
-### Индексы
-- `videos_tag_idx` - Индекс по тегу видео
-- `user_favorites_user_id_idx` - Индекс по ID пользователя
-- `user_favorites_video_id_idx` - Индекс по ID видео
+1. Создайте базу данных:
+```bash
+createdb cbstandup
+```
+
+2. Запустите скрипт инициализации:
+```bash
+psql -d cbstandup -f src/database/init.sql
+```
+
+### Структура
+
+- `videos` - таблица для хранения видео
+- `user_favorites` - таблица для хранения избранных видео пользователей
+- Индексы для оптимизации запросов
 
 ## Разработка
 
-### Скрипты
-- `npm run dev` - Запуск в режиме разработки
-- `npm run build` - Сборка проекта
-- `npm run start:prod` - Запуск в production режиме
-- `npm run test` - Запуск тестов
-- `npm run lint` - Проверка кода
+### Установка зависимостей
+```bash
+npm install
+```
 
-### Переменные окружения
+### Запуск в режиме разработки
+```bash
+npm run dev
+```
+
+### Сборка
+```bash
+npm run build
+```
+
+### Тесты
+```bash
+npm test
+```
+
+## Переменные окружения
+
+Создайте файл `.env` в корневой директории сервера:
+
 ```
 # Server Configuration
 PORT=3001
@@ -91,26 +108,17 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRATION=24h
+OPENAI_ASSISTANT_ID=your_assistant_id
 ```
-
-## Инициализация базы данных
-
-1. Создайте базу данных:
-   ```bash
-   createdb cbstandup
-   ```
-
-2. Запустите скрипт инициализации:
-   ```bash
-   psql -d cbstandup -f src/database/init.sql
-   ```
 
 ## Логирование
 
-- Используется встроенный логгер NestJS
-- Уровни логирования: error, warn, log, debug, verbose
-- Логи сохраняются в файл в production режиме 
+Приложение использует Winston для логирования. Логи выводятся в консоль в формате JSON с уровнем:
+- `debug` в режиме разработки
+- `info` в production
+
+## Тестирование
+
+- Unit тесты: `npm test`
+- E2E тесты: `npm run test:e2e`
+- Тесты API: `npm run test:api` 
