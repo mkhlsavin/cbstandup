@@ -2,10 +2,9 @@ services:
   # Backend API service
   - type: web
     name: cbstandup-api
-    env: node
+    env: docker
     plan: free
-    buildCommand: cd server && npm install && npm run build
-    startCommand: cd server && npm run start:prod
+    dockerfilePath: ./server/Dockerfile
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
@@ -33,19 +32,21 @@ services:
         fromDatabase:
           name: cbstandup-db
           property: database
+      - key: JWT_SECRET
+        sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: OPENAI_ASSISTANT_ID
+      - key: TELEGRAM_CHAT_ID
         sync: false
 
   # Frontend service
-  - type: static
+  - type: web
     name: cbstandup-web
-    env: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./build
+    env: docker
+    plan: free
+    dockerfilePath: ./src/Dockerfile
+    healthCheckPath: /
+    autoDeploy: true
     envVars:
       - key: REACT_APP_API_URL
         value: https://cbstandup-api.onrender.com/api
@@ -57,5 +58,5 @@ services:
 databases:
   - name: cbstandup-db
     databaseName: cbstandup
-    plan: free
-    user: cbstandup 
+    user: postgres
+    plan: free 
