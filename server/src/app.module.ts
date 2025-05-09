@@ -8,7 +8,6 @@ import { VideoService } from './services/video.service';
 import { OpenAIService } from './services/openai';
 import { TelegramService } from './services/telegram';
 import { VideoController } from './controllers/video.controller';
-import { SupabaseService } from './services/supabase.service';
 
 @Module({
   imports: [
@@ -25,7 +24,7 @@ import { SupabaseService } from './services/supabase.service';
     TypeOrmModule.forFeature([Video, UserFavorite]),
   ],
   controllers: [VideoController],
-  providers: [VideoService, OpenAIService, TelegramService, SupabaseService],
-  exports: [VideoService, OpenAIService, TelegramService, SupabaseService],
+  providers: [VideoService, OpenAIService, TelegramService],
+  exports: [VideoService, OpenAIService, TelegramService],
 })
 export class AppModule {}

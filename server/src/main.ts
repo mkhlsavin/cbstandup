@@ -16,24 +16,23 @@ async function bootstrap() {
 
   // Настройка CORS
   app.enableCors({
-    origin: true, // Allow all origins in production
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
   logger.log('CORS enabled');
 
-  // Start HTTP server immediately
+  // Start HTTP server
   logger.log(`Starting HTTP server on port ${port}...`);
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Health check available at: http://localhost:${port}/health`);
 
-  // Initialize services after HTTP server is running
+  // Initialize services
   logger.log('Initializing services...');
   const telegramService = app.get(TelegramService);
 
-  // Start Telegram bot in the background
+  // Start Telegram bot
   logger.log('Starting Telegram service...');
   telegramService.start().catch(error => {
     logger.error('Failed to start Telegram service:', error);
@@ -41,13 +40,7 @@ async function bootstrap() {
   });
 }
 
-// Handle Vercel serverless functions
-if (process.env.NODE_ENV === 'production') {
-  bootstrap().catch(error => {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  });
-}
-
-// Export for Vercel
-export default bootstrap;
+bootstrap().catch(error => {
+  console.error('Failed to start application:', error);
+  process.exit(1);
+});
