@@ -9,8 +9,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy source code and public directory
+COPY public/ ./public/
+COPY src/ ./src/
+COPY tsconfig.json ./
+COPY .env* ./
 
 # Build the application
 RUN npm run build
