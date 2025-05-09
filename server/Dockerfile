@@ -28,9 +28,10 @@ RUN npm install --only=production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
 # Expose port
 EXPOSE 3001
 
 # Start the application
-CMD ["npm", "run", "start:prod"] 
+CMD ["node", "dist/main"] 
