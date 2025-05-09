@@ -9,8 +9,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy source code and tsconfig
+COPY tsconfig.json ./
+COPY src/ ./src/
 
 # Build the application
 RUN npm run build
@@ -28,10 +29,9 @@ RUN npm install --only=production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 
 # Expose port
 EXPOSE 3001
 
 # Start the application
-CMD ["node", "dist/main"] 
+CMD ["node", "dist/main.js"] 
