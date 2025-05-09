@@ -32,4 +32,9 @@ export async function startBot() {
     console.error('Error starting bot:', error);
     throw error;
   }
+}
+
+async function start() {
+  this.bot.on('message', this.handleMessage.bind(this));
+  this.bot.on('callback_query', this.handleCallbackQuery.bind(this));
 } 

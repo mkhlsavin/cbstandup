@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Video } from '../entities/Video';
-import { getFavorites } from '../services/api';
+import { Video } from '../types/Video';
+import { UserFavorite } from '../types/UserFavorite';
+import { getFavorites, getVideos } from '../services/api';
 import { useTelegram } from '../hooks/useTelegram';
 import { VideoPlayer } from './VideoPlayer';
 
@@ -74,8 +75,11 @@ export const Favorites: React.FC = () => {
     const loadFavorites = async () => {
       if (user?.id) {
         try {
-          const data = await getFavorites(user.id);
-          setFavorites(data);
+          const favoritesData = await getFavorites(user.id.toString());
+          const favoriteIds = new Set(favoritesData.map((fav: UserFavorite) => fav.video_id));
+          const videos = await getVideos();
+          const favoriteVideos = videos.filter((video: Video) => favoriteIds.has(video.id));
+          setFavorites(favoriteVideos);
         } catch (error) {
           console.error('Error loading favorites:', error);
         }

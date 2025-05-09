@@ -36,6 +36,29 @@ type PlayerStatus =
   | 'preparing'
   | 'finished';
 
+interface PlayerEvent {
+  type: string;
+  data?: unknown;
+}
+
+declare class Playerjs {
+  constructor(config: {
+    id: string;
+    file: string;
+    width: string;
+    height: string;
+    autostart: boolean;
+    controls: boolean;
+  });
+  on(event: string, callback: (event: PlayerEvent) => void): void;
+  api(command: string): void;
+}
+
+interface PlayerInstance {
+  on(event: string, callback: (event: PlayerEvent) => void): void;
+  api(command: string): void;
+}
+
 const PlayerContainer = styled.div`
   width: 100%;
   height: 100%;
@@ -49,7 +72,13 @@ declare global {
   interface Window {
     Ya: {
       playerSdk: {
-        init: (config: unknown) => unknown;
+        init: (config: {
+          element: HTMLElement | null;
+          source: string;
+          autoplay: boolean;
+          muted: boolean;
+          controls: boolean;
+        }) => PlayerInstance;
       };
     };
   }
@@ -60,7 +89,7 @@ let isScriptLoading = false;
 let scriptLoadCallbacks: Array<() => void> = [];
 
 const loadScript = (): Promise<void> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     if (window.Ya?.playerSdk) {
       resolve();
       return;
@@ -81,6 +110,10 @@ const loadScript = (): Promise<void> => {
       scriptLoadCallbacks.forEach(cb => cb());
       scriptLoadCallbacks = [];
     };
+    script.onerror = (error) => {
+      isScriptLoading = false;
+      reject(error);
+    };
     document.body.appendChild(script);
   });
 };
@@ -97,109 +130,81 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onStatusChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<unknown>(null);
+  const playerRef = useRef<PlayerInstance | null>(null);
   const playerIdRef = useRef<string>(generatePlayerId());
   const fullVideoUrl = `${YANDEX_VIDEO_PLAYER_URL}${videoUrl}`;
-  const isInitializedRef = useRef(false);
 
   useEffect(() => {
+    if (!fullVideoUrl) return;
+
     const initializePlayer = async () => {
       try {
         await loadScript();
 
-        if (containerRef.current && !isInitializedRef.current) {
-          console.log('Initializing player for URL:', fullVideoUrl);
-
-          // Clean up any existing player
-          if (playerRef.current && typeof playerRef.current === 'object') {
-            try {
-              (playerRef.current as { destroy: () => void }).destroy();
-            } catch (error) {
-              console.warn('Failed to destroy player on cleanup:', error);
-            }
-            playerRef.current = null;
-          }
-
-          // Create a unique container for this player
-          const playerContainer = document.createElement('div');
-          playerContainer.id = playerIdRef.current;
-          playerContainer.style.width = '100%';
-          playerContainer.style.height = '100%';
-          containerRef.current.appendChild(playerContainer);
-
-          playerRef.current = window.Ya.playerSdk.init({
-            element: playerContainer,
-            source: fullVideoUrl,
-            autoplay,
-            muted: false,
-            controls,
-            events: {
-              onStatusChange: (event: unknown) => {
-                const { status, player } = event as { status: PlayerStatus; player: unknown };
-                if (player !== playerRef.current) return;
-                console.log(`[${playerIdRef.current}] Player status changed:`, status);
-                if (onStatusChange) onStatusChange(status);
-                if (status === 'play' && onPlay) onPlay();
-                if (status === 'pause' && onPause) onPause();
-                if ((status === 'end' || status === 'finished') && onEnded) onEnded();
-                if (status === 'idle' && onReady) onReady();
-              },
-              onErrorChange: (event: unknown) => {
-                const { error, player } = event as { error: unknown; player: unknown };
-                if (player !== playerRef.current) return;
-                console.log(`[${playerIdRef.current}] Player error changed:`, error);
-                if (onError) onError(error);
-              },
-              onVolumeChange: (event: unknown) => {
-                const { volume, player } = event as PlayerVolumeEvent & { player: unknown };
-                if (player !== playerRef.current) return;
-                if (volume === 0 && playerRef.current && typeof playerRef.current === 'object') {
-                  (playerRef.current as { setVolume: (v: number) => void }).setVolume(1);
-                }
-              },
-            },
-          });
-
-          isInitializedRef.current = true;
-          console.log(`[${playerIdRef.current}] Player initialized successfully`);
+        if (!containerRef.current) {
+          throw new Error('Container element not found');
         }
+
+        if (!window.Ya?.playerSdk) {
+          throw new Error('Player SDK not loaded');
+        }
+
+        const player = window.Ya.playerSdk.init({
+          element: containerRef.current,
+          source: fullVideoUrl,
+          autoplay: false,
+          muted: false,
+          controls: controls,
+        });
+
+        player.on('ready', (event: PlayerEvent) => {
+          if (onStatusChange) {
+            onStatusChange('init');
+          }
+        });
+
+        player.on('play', (event: PlayerEvent) => {
+          if (onStatusChange) {
+            onStatusChange('play');
+          }
+        });
+
+        player.on('pause', (event: PlayerEvent) => {
+          if (onStatusChange) {
+            onStatusChange('pause');
+          }
+        });
+
+        player.on('ended', (event: PlayerEvent) => {
+          if (onStatusChange) {
+            onStatusChange('end');
+          }
+        });
+
+        player.on('error', (event: PlayerEvent) => {
+          if (onError) {
+            onError(event.data);
+          }
+        });
+
+        playerRef.current = player;
       } catch (error) {
-        console.error(`[${playerIdRef.current}] Error initializing player:`, error);
-        if (onError) onError(error);
+        console.error('Failed to initialize player:', error);
+        if (onError) {
+          onError(error);
+        }
       }
     };
 
     initializePlayer();
 
     return () => {
-      console.log(`[${playerIdRef.current}] Cleaning up player`);
-      if (playerRef.current && typeof playerRef.current === 'object') {
-        try {
-          (playerRef.current as { destroy: () => void }).destroy();
-        } catch (error) {
-          console.warn(`[${playerIdRef.current}] Failed to destroy player:`, error);
-        }
+      if (playerRef.current) {
+        playerRef.current.api('destroy');
         playerRef.current = null;
       }
-      if (containerRef.current) {
-        const playerContainer = containerRef.current.querySelector(`#${playerIdRef.current}`);
-        if (playerContainer) {
-          playerContainer.remove();
-        }
-      }
-      isInitializedRef.current = false;
     };
-  }, [
-    fullVideoUrl,
-    autoplay,
-    controls,
-    onReady,
-    onPlay,
-    onPause,
-    onEnded,
-    onError,
-    onStatusChange,
-  ]);
+  }, [fullVideoUrl, controls, onStatusChange, onError]);
 
   return <PlayerContainer ref={containerRef} />;
 };

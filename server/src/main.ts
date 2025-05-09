@@ -11,7 +11,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  const port = process.env.PORT || '3000';
+  const port = process.env.PORT || '3001';
   logger.log(`Configuring application on port ${port}...`);
 
   // Настройка CORS

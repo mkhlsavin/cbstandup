@@ -126,9 +126,7 @@ MIT
 
 #### Клиентская часть (.env в корневой директории)
 ```
-REACT_APP_API_URL=http://localhost:3002
-REACT_APP_TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-REACT_APP_BOT_USERNAME=@cbstandup_bot
+REACT_APP_API_URL=http://localhost:3001
 NODE_ENV=development
 ```
 
@@ -154,4 +152,21 @@ OPENAI_API_KEY=your_openai_api_key
 # JWT Configuration
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRATION=24h
-``` 
+```
+
+## Инициализация базы данных
+
+1. Убедитесь, что у вас установлен и запущен PostgreSQL
+2. Создайте базу данных:
+   ```bash
+   createdb cbstandup
+   ```
+3. Инициализируйте базу данных с помощью скрипта:
+   ```bash
+   psql -d cbstandup -f init.sql
+   ```
+
+Скрипт `init.sql` находится в папке `server/src/database`. Он создаст необходимые таблицы и индексы:
+- `videos` - таблица для хранения видео
+- `user_favorites` - таблица для хранения избранных видео пользователей
+- Индексы для оптимизации запросов 

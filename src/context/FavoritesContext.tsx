@@ -6,12 +6,12 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import { toggleFavorite, api } from '../services/api';
-import { UserFavorite } from '../entities/UserFavorite';
+import { addToFavorites, removeFromFavorites, getFavorites } from '../services/api';
+import { UserFavorite } from '../types/UserFavorite';
 
 interface FavoritesContextType {
   favorites: Set<number>;
-  toggleFavorite: (videoId: number, videoTitle: string, userId: number) => Promise<void>;
+  toggleFavorite: (videoId: number, videoTitle: string, userId: string) => Promise<void>;
   isFavorite: (videoId: number) => boolean;
 }
 
@@ -28,7 +28,7 @@ export const useFavorites = () => {
 interface FavoritesProviderProps {
   children: ReactNode;
   initialFavorites: number[];
-  userId: number;
+  userId: string;
 }
 
 export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
@@ -36,10 +36,18 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
   initialFavorites,
   userId,
 }) => {
-  const [favorites, setFavorites] = useState<Set<number>>(new Set(initialFavorites));
+  const [favorites, setFavorites] = useState<Set<number>>(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const savedFavorites = localStorage.getItem(`favorites_${userId}`);
+      if (savedFavorites) {
+        return new Set(JSON.parse(savedFavorites));
+      }
+    }
+    return new Set(initialFavorites);
+  });
 
   const handleToggleFavorite = useCallback(
-    async (videoId: number, videoTitle: string, userId: number) => {
+    async (videoId: number, videoTitle: string, userId: string) => {
       // Оптимистичное обновление UI
       setFavorites(prevFavorites => {
         const newFavorites = new Set(prevFavorites);
@@ -48,11 +56,19 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
         } else {
           newFavorites.add(videoId);
         }
+        // Сохраняем в localStorage в режиме разработки
+        if (process.env.NODE_ENV === 'development') {
+          localStorage.setItem(`favorites_${userId}`, JSON.stringify(Array.from(newFavorites)));
+        }
         return newFavorites;
       });
 
       try {
-        await toggleFavorite(userId, videoId);
+        if (favorites.has(videoId)) {
+          await removeFromFavorites(userId, videoId);
+        } else {
+          await addToFavorites(userId, videoId);
+        }
 
         if (
           window.Telegram &&
@@ -73,11 +89,15 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
           } else {
             newFavorites.delete(videoId);
           }
+          // Сохраняем в localStorage в режиме разработки
+          if (process.env.NODE_ENV === 'development') {
+            localStorage.setItem(`favorites_${userId}`, JSON.stringify(Array.from(newFavorites)));
+          }
           return newFavorites;
         });
       }
     },
-    []
+    [favorites]
   );
 
   const isFavorite = useCallback(
@@ -91,9 +111,13 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
     if (!userId) return;
 
     try {
-      const response = await api.get('/videos/favorites');
-      const favoritesData = response.data;
-      setFavorites(new Set(favoritesData.map((fav: UserFavorite) => fav.video_id)));
+      const favoritesData = await getFavorites(userId);
+      const newFavorites = new Set(favoritesData.map((fav: UserFavorite) => fav.video_id));
+      setFavorites(newFavorites);
+      // Сохраняем в localStorage в режиме разработки
+      if (process.env.NODE_ENV === 'development') {
+        localStorage.setItem(`favorites_${userId}`, JSON.stringify(Array.from(newFavorites)));
+      }
     } catch (error) {
       // Handle error silently
     }

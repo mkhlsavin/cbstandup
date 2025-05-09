@@ -18,7 +18,7 @@ const AppContent: React.FC = () => {
   return (
     <ThemeProvider theme={currentTheme}>
       <GlobalStyle />
-      <FavoritesProvider initialFavorites={initialFavorites} userId={user?.id || 0}>
+      <FavoritesProvider initialFavorites={initialFavorites} userId={user?.id?.toString() || '0'}>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<VideoFeed />} />

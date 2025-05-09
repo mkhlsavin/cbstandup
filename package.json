@@ -11,12 +11,14 @@
     "@twa-dev/sdk": "^6.9.1",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.126",
+    "@types/node-telegram-bot-api": "^0.64.8",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.22",
     "axios": "^1.6.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "framer-motion": "^12.10.0",
+    "node-telegram-bot-api": "^0.66.0",
     "openai": "^4.97.0",
     "pg": "^8.15.6",
     "react": "^18.2.0",
@@ -37,8 +39,6 @@
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,md}\"",
     "type-check": "tsc --noEmit",
     "prepare": "husky install"
   },
@@ -66,14 +66,11 @@
     "@typescript-eslint/parser": "^5.0.0",
     "crypto-browserify": "^3.12.0",
     "eslint": "^8.0.0",
-    "eslint-config-prettier": "^8.0.0",
-    "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.0.0",
     "https-browserify": "^1.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "path-browserify": "^1.0.1",
-    "prettier": "^2.0.0",
     "react-app-rewired": "^2.2.1",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
@@ -83,11 +80,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "prettier --write",
       "eslint --fix"
-    ],
-    "*.{css,md}": [
-      "prettier --write"
     ]
   }
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { Video } from '../entities/Video';
+import { Video } from '../types/Video';
+import { UserFavorite } from '../types/UserFavorite';
 import { getVideos, getFavorites } from '../services/api';
 import { useTelegram } from '../context/TelegramContext';
 import { VideoPlayer } from './VideoPlayer';
@@ -130,8 +131,8 @@ export const VideoFeed: React.FC = () => {
   const loadFavorites = useCallback(async () => {
     if (user?.id) {
       try {
-        const favoritesData = await getFavorites(user.id);
-        const favoriteIds = new Set(favoritesData.map(fav => fav.id));
+        const favoritesData = await getFavorites(user.id.toString());
+        const favoriteIds = new Set<number>(favoritesData.map((fav: UserFavorite) => fav.video_id));
         setFavorites(favoriteIds);
       } catch (error) {
         // Обработка ошибки загрузки избранного

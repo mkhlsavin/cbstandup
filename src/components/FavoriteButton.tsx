@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
-import { toggleFavorite } from '../services/api';
+import { addToFavorites, removeFromFavorites } from '../services/api';
 import { useTelegram } from '../context/TelegramContext';
 
 const FavoriteButtonWrapper = styled.div`
@@ -59,7 +59,11 @@ export const FavoriteButtonComponent: React.FC<FavoriteButtonProps> = ({
       setIsFavorite(prev => !prev);
 
       try {
-        await toggleFavorite(user.id, videoId);
+        if (isFavorite) {
+          await removeFromFavorites(user.id.toString(), videoId);
+        } else {
+          await addToFavorites(user.id.toString(), videoId);
+        }
 
         if (
           window.Telegram &&
@@ -76,7 +80,7 @@ export const FavoriteButtonComponent: React.FC<FavoriteButtonProps> = ({
         setIsFavorite(prev => !prev);
       }
     },
-    [user?.id, videoId, videoTitle]
+    [user?.id, videoId, videoTitle, isFavorite]
   );
 
   return (

@@ -1,67 +1,116 @@
-# Backend Server Structure
+# Backend Structure
 
-This directory contains the backend server code of the application. Below is a detailed description of each subdirectory and its purpose.
-
-## Directory Structure
+## Директории
 
 ### `/src`
-Main source code directory containing the server implementation.
+Основной код сервера:
+- `main.ts` - Точка входа приложения
+- `app.module.ts` - Корневой модуль NestJS
 
-### `/config`
-Server configuration files, environment variables, and settings.
+### `/src/controllers`
+Контроллеры API:
+- `video.controller.ts` - Управление видео
+- `favorite.controller.ts` - Управление избранным
 
-### `/logs`
-Application log files and logging configuration.
+### `/src/services`
+Сервисы:
+- `telegram.service.ts` - Интеграция с Telegram
+- `openai.service.ts` - Интеграция с OpenAI
 
-### `/services`
-Backend service implementations, including business logic and external service integrations.
+### `/src/database`
+Работа с базой данных:
+- `init.sql` - Скрипт инициализации базы данных
+- `migrations/` - Миграции базы данных
 
-### `/entities`
-Data models, database schemas, and entity definitions.
+### `/src/entities`
+Сущности базы данных:
+- `Video.ts` - Модель видео
+- `UserFavorite.ts` - Модель избранного
 
-## Key Files
+## Основные технологии
 
-- `index.ts` - Main server entry point
-- `bot.ts` - Bot implementation and configuration
-- `Dockerfile` - Docker configuration for containerization
-- `tsconfig.json` - TypeScript configuration
-- `jest.config.js` - Jest testing configuration
-- `.eslintrc.js` - ESLint configuration
-- `.prettierrc` - Prettier code formatting configuration
+- NestJS
+- TypeORM
+- PostgreSQL
+- OpenAI Assistants API
+- Telegraf для Telegram бота
 
-## Development Guidelines
+## API Endpoints
 
-1. Follow TypeScript best practices and maintain type safety
-2. Write unit tests for new features and services
-3. Keep services modular and focused on specific responsibilities
-4. Use proper error handling and logging
-5. Follow the established folder structure for new features
-6. Document API endpoints and service interfaces
+### Видео
+- `GET /videos` - Получение списка видео
+- `GET /videos/:id` - Получение видео по ID
+- `GET /videos/tag/:tag` - Получение видео по тегу
 
-## Setup and Running
+### Избранное
+- `GET /favorites/:userId` - Получение избранных видео пользователя
+- `POST /favorites/:userId/:videoId` - Добавление видео в избранное
+- `DELETE /favorites/:userId/:videoId` - Удаление видео из избранного
 
-1. Install dependencies:
+## Интеграция с Telegram
+
+- Обработка команд бота
+- Интеграция с OpenAI для генерации вопросов
+- Управление сессиями пользователей
+
+## База данных
+
+### Таблицы
+- `videos` - Хранение информации о видео
+- `user_favorites` - Связь пользователей с избранными видео
+
+### Индексы
+- `videos_tag_idx` - Индекс по тегу видео
+- `user_favorites_user_id_idx` - Индекс по ID пользователя
+- `user_favorites_video_id_idx` - Индекс по ID видео
+
+## Разработка
+
+### Скрипты
+- `npm run dev` - Запуск в режиме разработки
+- `npm run build` - Сборка проекта
+- `npm run start:prod` - Запуск в production режиме
+- `npm run test` - Запуск тестов
+- `npm run lint` - Проверка кода
+
+### Переменные окружения
+```
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+DB_DATABASE=cbstandup
+
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRATION=24h
+```
+
+## Инициализация базы данных
+
+1. Создайте базу данных:
    ```bash
-   npm install
+   createdb cbstandup
    ```
 
-2. Configure environment variables in the config directory
-
-3. Start the development server:
+2. Запустите скрипт инициализации:
    ```bash
-   npm run dev
+   psql -d cbstandup -f src/database/init.sql
    ```
 
-4. Run tests:
-   ```bash
-   npm test
-   ```
+## Логирование
 
-## Docker Support
-
-The server can be containerized using the provided Dockerfile. Build and run the container using:
-
-```bash
-docker build -t server .
-docker run -p 3000:3000 server
-``` 
+- Используется встроенный логгер NestJS
+- Уровни логирования: error, warn, log, debug, verbose
+- Логи сохраняются в файл в production режиме 
