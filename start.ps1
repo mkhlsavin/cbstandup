@@ -32,14 +32,16 @@ Start-Sleep -Seconds 2
 # Проверяем и освобождаем порты
 $ports = @(3001, 3002)
 foreach ($port in $ports) {
-    if (Test-PortInUse $port) {
-        Free-Port $port
+    $process = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+    if ($process) {
+        Write-Host "Освобождаем порт $port..."
+        Stop-Process -Id $process.OwningProcess -Force
     }
 }
 
-# Install dependencies if needed
+# Установка зависимостей, если они отсутствуют
 if (-not (Test-Path "node_modules")) {
-    Write-Host "Installing dependencies..."
+    Write-Host "Установка зависимостей..."
     npm install
 }
 
@@ -54,29 +56,16 @@ if (-not (Test-Path "server/node_modules")) {
 # Add PostgreSQL to PATH
 $env:Path = "C:\Program Files\PostgreSQL\17\bin;$env:Path"
 
-# Запуск сервера в первом окне PowerShell
-Write-Host "Starting server..."
-$serverWindow = Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$PWD\server'; `$env:NODE_ENV='development'; `$env:PORT='3001'; npm run dev" -PassThru
+# Запуск сервера
+Write-Host "Запуск сервера..."
+Start-Process powershell -ArgumentList "cd server; npm run dev"
 
-# Ждем 10 секунд, чтобы сервер успел запуститься
-Write-Host "Waiting for server to start..."
-Start-Sleep -Seconds 10
+# Запуск веб-приложения
+Write-Host "Запуск веб-приложения..."
+Start-Process powershell -ArgumentList "npm start"
 
-# Запуск веб-приложения во втором окне PowerShell
-Write-Host "Starting web application..."
-$webWindow = Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$PWD'; `$env:PORT='3002'; npm run start:web" -PassThru
-
-Write-Host "Applications are starting in separate windows..."
-Write-Host "Server will be available at: http://localhost:3001"
-Write-Host "Web application will be available at: http://localhost:3002"
-Write-Host "Press Enter to stop all processes..."
-
-# Ждем нажатия Enter для завершения
-$null = Read-Host
-
-# Cleanup
-Write-Host "Stopping all processes..."
-if ($null -ne $serverWindow) { Stop-Process -Id $serverWindow.Id -Force }
-if ($null -ne $webWindow) { Stop-Process -Id $webWindow.Id -Force }
-Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force
-Write-Host "All processes stopped" 
+Write-Host "Приложение запущено!"
+Write-Host "Сервер: http://localhost:3001"
+Write-Host "Веб-приложение: http://localhost:3002"
+Write-Host "Нажмите Enter для остановки..."
+Read-Host 

@@ -8,6 +8,8 @@ import { VideoService } from './services/video.service';
 import { OpenAIService } from './services/openai';
 import { TelegramService } from './services/telegram';
 import { VideoController } from './controllers/video.controller';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -23,8 +25,8 @@ import { VideoController } from './controllers/video.controller';
     }),
     TypeOrmModule.forFeature([Video, UserFavorite]),
   ],
-  controllers: [VideoController],
-  providers: [VideoService, OpenAIService, TelegramService],
+  controllers: [AppController, VideoController],
+  providers: [AppService, VideoService, OpenAIService, TelegramService],
   exports: [VideoService, OpenAIService, TelegramService],
 })
 export class AppModule {}

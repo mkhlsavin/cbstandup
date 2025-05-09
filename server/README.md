@@ -33,7 +33,7 @@
 - TypeORM
 - PostgreSQL
 - OpenAI Assistants API
-- Telegraf для Telegram бота
+- Grammy для Telegram бота
 
 ## API Endpoints
 

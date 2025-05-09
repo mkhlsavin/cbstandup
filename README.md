@@ -107,7 +107,7 @@ chmod +x start.sh
 - TypeORM
 - PostgreSQL
 - OpenAI Assistants API
-- Telegraf для Telegram бота
+- Grammy для Telegram бота
 
 ## Функциональность
 
@@ -124,7 +124,7 @@ MIT
 
 ### Переменные окружения
 
-#### Клиентская часть (.env в корневой директории)
+#### Клиентская часть (.env в директории src)
 ```
 REACT_APP_API_URL=http://localhost:3001
 NODE_ENV=development

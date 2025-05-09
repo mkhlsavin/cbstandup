@@ -19,7 +19,7 @@ const AppContent: React.FC = () => {
     <ThemeProvider theme={currentTheme}>
       <GlobalStyle />
       <FavoritesProvider initialFavorites={initialFavorites} userId={user?.id?.toString() || '0'}>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Router>
           <Routes>
             <Route path="/" element={<VideoFeed />} />
             <Route path="/favorites" element={<Favorites />} />

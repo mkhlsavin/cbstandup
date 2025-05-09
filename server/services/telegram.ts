@@ -1,40 +1,62 @@
-import { Telegraf } from 'telegraf';
-import { getAssistantResponse } from './openai';
+import { Bot, Context, session, SessionFlavor } from 'grammy';
+import { initializeAssistant } from './openai';
 
-if (!process.env.TELEGRAM_BOT_TOKEN) {
-  throw new Error('TELEGRAM_BOT_TOKEN is not defined');
+interface SessionData {
+  messages: Array<{ role: string; content: string }>;
 }
 
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+type BotContext = Context & SessionFlavor<SessionData>;
 
+const bot = new Bot<BotContext>(process.env.TELEGRAM_BOT_TOKEN || '');
+
+// Middleware для сессий
+bot.use(session({
+  initial: (): SessionData => ({
+    messages: [],
+  }),
+}));
+
+// Обработка команды /start
 bot.command('start', async (ctx) => {
-  await ctx.reply(
-    'Привет! Я бот-помощник по биологии и химии. Задавайте мне вопросы, и я постараюсь помочь вам разобраться в этих предметах.'
-  );
+  await ctx.reply('Привет! Я бот для подготовки к ДВИ по химии и биологии. Используйте команду /ask для начала обучения.');
 });
 
-bot.on('text', async (ctx) => {
+// Обработка команды /ask
+bot.command('ask', async (ctx) => {
+  const question = ctx.message?.text.replace('/ask', '').trim();
+  if (!question) {
+    await ctx.reply('Пожалуйста, задайте вопрос после команды /ask');
+    return;
+  }
+
   try {
-    const message = ctx.message.text;
-    const response = await getAssistantResponse(message);
-    await ctx.reply(response);
+    // Добавляем сообщение в историю
+    ctx.session.messages.push({ role: 'user', content: question });
+
+    // Получаем ответ от ассистента
+    const response = await initializeAssistant();
+    const completion = await response.chat.completions.create({
+      messages: ctx.session.messages,
+      model: 'gpt-4-turbo-preview',
+    });
+
+    const answer = completion.choices[0]?.message?.content || 'Извините, не удалось получить ответ';
+    await ctx.reply(answer);
+
+    // Добавляем ответ ассистента в историю
+    ctx.session.messages.push({ role: 'assistant', content: answer });
   } catch (error) {
-    console.error('Error handling message:', error);
-    await ctx.reply('Извините, произошла ошибка. Пожалуйста, попробуйте еще раз.');
+    console.error('Error in /ask command:', error);
+    await ctx.reply('Произошла ошибка при обработке вашего запроса');
   }
 });
 
-export async function startBot() {
+export const startBot = async () => {
   try {
-    await bot.launch();
+    await bot.start();
     console.log('Bot started successfully');
   } catch (error) {
     console.error('Error starting bot:', error);
     throw error;
   }
-}
-
-async function start() {
-  this.bot.on('message', this.handleMessage.bind(this));
-  this.bot.on('callback_query', this.handleCallbackQuery.bind(this));
-} 
+}; 
