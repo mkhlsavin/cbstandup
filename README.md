@@ -114,9 +114,9 @@ chmod +x start.sh
 
 ## Переменные окружения
 
-### Клиентская часть (.env)
+### Клиентская часть (src/.env)
 ```
-REACT_APP_API_URL=http://localhost:3001
+REACT_APP_API_URL=http://localhost:3001/api
 ```
 
 ### Серверная часть (server/.env)

@@ -14,6 +14,10 @@ async function bootstrap() {
   const port = process.env.PORT || '3001';
   logger.log(`Configuring application on port ${port}...`);
 
+  // Set global prefix
+  app.setGlobalPrefix('api');
+  logger.log('Global prefix "api" set');
+
   // Настройка CORS
   app.enableCors({
     origin: true,

@@ -28,14 +28,14 @@ server/
 ## API Endpoints
 
 ### Health Check
-- `GET /health` - Проверка работоспособности сервера
+- `GET /api/health` - Проверка работоспособности сервера
 
 ### Videos
-- `GET /videos` - Получение списка видео
-- `GET /videos/tag/:tag` - Получение видео по тегу
-- `GET /favorites/:userId` - Получение избранных видео пользователя
-- `POST /favorites` - Добавление видео в избранное
-- `DELETE /favorites/:userId/:videoId` - Удаление видео из избранного
+- `GET /api/videos` - Получение списка видео
+- `GET /api/videos/tag/:tag` - Получение видео по тегу
+- `GET /api/favorites/:userId` - Получение избранных видео пользователя
+- `POST /api/favorites` - Добавление видео в избранное
+- `DELETE /api/favorites/:userId/:videoId` - Удаление видео из избранного
 
 ## Интеграция с Telegram
 
