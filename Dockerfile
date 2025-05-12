@@ -4,37 +4,35 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY server/package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy source code
-COPY server/ ./
+COPY . ./
+
+# Create public directory and move index.html
+RUN mkdir -p public && \
+    cp src/public/index.html public/ && \
+    cp src/public/manifest.json public/ && \
+    cp src/public/favicon.ico public/ && \
+    cp src/public/logo*.png public/
 
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy built files from builder stage
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy package files
-COPY server/package*.json ./
-
-# Install production dependencies only
-RUN npm install --only=production
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=10000
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
-EXPOSE 10000
+EXPOSE 80
 
-# Start the application
-CMD ["npm", "run", "start"] 
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"] 

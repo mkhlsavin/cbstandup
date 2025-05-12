@@ -152,6 +152,10 @@ OPENAI_ASSISTANT_ID=your_assistant_id
    psql -d cbstandup -f server/src/database/init.sql
    ```
 
+## Инициализация ИИ-ассистента ChatGPT
+
+В разделе [Playground-Assistants](https://platform.openai.com/playground/assistant) задайте поля `Name` (например, AI-tutor) и `System Instructions` в соответствии с содержимым файла `system-instructions.txt`. Также, при необходимости, добавьте нужные файлы (например, образцы олимпиадных задач) включив опцию `File Search`.
+
 ## Лицензия
 
 MIT 
